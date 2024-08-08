@@ -38,6 +38,7 @@ public struct FloatingLabelTextField: View {
 
     @FocusState fileprivate var isFocused: Bool
     @State private var textFieldHeight: CGFloat = 0.0
+    @State var changedTextColor: Color = .pink
 
     //MARK: Observed Object
     @ObservedObject private var notifier = FloatingLabelTextFieldNotifier()
@@ -96,11 +97,14 @@ public struct FloatingLabelTextField: View {
                         }
                     }
                 }
+                .onChange(of: textFieldValue, perform: { (isChanged) in
+                    self.changedTextColor = self.currentError.condition ? (isSelected ? notifier.selectedTextColor : notifier.textColor) : notifier.errorColor
+                })
                 .disabled(self.notifier.disabled)
                 .allowsHitTesting(self.notifier.allowsHitTesting)
                 .font(notifier.font)
                 .multilineTextAlignment(notifier.textAlignment)
-                .foregroundColor((self.currentError.condition || !notifier.isShowError) ? (isSelected ? notifier.selectedTextColor : notifier.textColor) : notifier.errorColor)
+                .foregroundColor(self.changedTextColor)
 
             } else {
                 if #available(iOS 16.0, *) {
@@ -110,6 +114,7 @@ public struct FloatingLabelTextField: View {
                             withAnimation {
                                 DispatchQueue.main.async {
                                     self.isSelected = isChanged
+
                                 }
                             }
 
@@ -120,6 +125,9 @@ public struct FloatingLabelTextField: View {
                             self.validtionChecker = self.currentError.condition
                             self.editingChanged(isChanged)
                             arrTextFieldEditActions = self.notifier.arrTextFieldEditActions
+                        })
+                        .onChange(of: textFieldValue, perform: { (isChanged) in
+                            self.changedTextColor = self.currentError.condition ? (isSelected ? notifier.selectedTextColor : notifier.textColor) : notifier.errorColor
                         })
                         .onSubmit({
                             self.isShowError = self.notifier.isRequiredField
@@ -132,10 +140,11 @@ public struct FloatingLabelTextField: View {
                         .allowsHitTesting(self.notifier.allowsHitTesting)
                         .multilineTextAlignment(notifier.textAlignment)
                         .font(notifier.font)
-                        .foregroundColor((self.currentError.condition || !notifier.isShowError) ? (isSelected ? notifier.selectedTextColor : notifier.textColor) : notifier.errorColor)
+                        .foregroundColor(self.changedTextColor)
                         .background(
                             GeometryReader(content: set(geometry:))
                         )
+
                 } else {
                     TextField("", text: $textFieldValue.animation(), onEditingChanged: { (isChanged) in
                         withAnimation {
@@ -161,7 +170,7 @@ public struct FloatingLabelTextField: View {
                     .allowsHitTesting(self.notifier.allowsHitTesting)
                     .multilineTextAlignment(notifier.textAlignment)
                     .font(notifier.font)
-                    .foregroundColor((self.currentError.condition || !notifier.isShowError) ? (isSelected ? notifier.selectedTextColor : notifier.textColor) : notifier.errorColor)
+                    .foregroundColor(self.changedTextColor)
                 }
             }
         }
